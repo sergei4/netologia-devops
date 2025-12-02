@@ -1,0 +1,64 @@
+---
+- name: Install nginx
+  hosts: lighthouse
+  become: true
+  tags:
+    - nginx
+  handlers:
+    - name: start-nginx
+      command: nginx
+    - name: reload-nginx
+      command: nginx -s reload   
+  tasks:    
+    - name: NGINX | Install epel-release
+      ansible.builtin.yum:
+        name: epel-release
+        state: present
+    - name: NGINX | Install nginx
+      ansible.builtin.yum:
+        name: nginx 
+        state: present
+      notify: nginx  
+    - name: NGINX | Create config
+      template:
+        src: nginx.conf.j2
+        dest: /etc/nginx/nginx.conf
+        mode: "644"
+      notify: reload-nginx          
+
+- name: Install lighthouse
+  hosts: lighthouse
+  become: true
+  tags:
+    - lighthouse
+  handlers:
+    - name: reload-nginx
+      command: nginx -s reload
+  pre_tasks:
+    - name: Lighthouse | Install git
+      ansible.builtin.yum:
+        name: git
+        state: present  
+  tasks:
+    - name: Lighthouse | Create site directory
+      ansible.builtin.file:
+        path: "{{ lighthouse_location_dir }}"
+        state: directory
+        mode: '0755'     
+    - name: Lighthouse | Install from git 
+      git: 
+        repo: "{{ lighthouse_vcs }}"
+        version: master
+        dest: "{{ lighthouse_location_dir }}"
+    - name: Lighthouse | Create config
+      ansible.builtin.template:
+        src: lighthouse.conf.j2
+        dest: /etc/nginx/conf.d/default.conf
+      notify: reload-nginx        
+    - name: Lighthouse | Confgiure SELinux context
+      community.general.sefcontext:
+        target: "/var/www/lighthouse(/.*)?"
+        setype: httpd_sys_content_t
+        state: present  
+    - name: Lighthouse | Apply SELinux context
+      command: restorecon -Rv /var/www/lighthouse    
