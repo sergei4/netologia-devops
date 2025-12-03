@@ -1,0 +1,16 @@
+---
+- name: Install Clickhouse
+  hosts: clickhouse
+  roles:
+    - clickhouse
+
+- name: Install Vector
+  hosts: vector
+  roles:
+    - vector 
+
+- name: Install Lighthouse
+  hosts: lighthouse
+  roles:
+    - role: lighthouse
+      lighthouse_location_dir: "/var/www/lighthouse"  
