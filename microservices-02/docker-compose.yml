@@ -1,0 +1,87 @@
+volumes:
+  data:
+  prometheus-data:
+  grafana_data:
+
+services:
+  storage:
+    image: minio/minio:latest
+    command: server /data
+    restart: always
+    expose: 
+      - 9000
+    environment:
+      MINIO_ROOT_USER: ${Storage_AccessKey:-STORAGE_ACCESS_KEY}
+      MINIO_ROOT_PASSWORD: ${Storage_Secret:-STORAGE_SECRET_KEY}
+      MINIO_PROMETHEUS_AUTH_TYPE: public
+    volumes:
+      - data:/data
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:9000/minio/health/live"]
+      interval: 30s
+      timeout: 20s
+      retries: 3
+
+  createbuckets:
+    image: minio/mc
+    depends_on:
+      - storage
+    restart: on-failure
+    entrypoint: > 
+      /bin/sh -c "      
+      /usr/bin/mc alias set storage http://storage:9000 ${Storage_AccessKey-STORAGE_ACCESS_KEY} ${Storage_Secret-STORAGE_SECRET_KEY} &&
+      /usr/bin/mc mb --ignore-existing storage/${Storage_Bucket:-images} &&
+      /usr/bin/mc anonymous set download storage/${Storage_Bucket:-images} &&
+      exit 0;
+      "
+
+  uploader:
+    build: ./uploader
+    depends_on:
+      - storage
+      - createbuckets
+    expose: 
+      - 3000
+    environment:
+      PORT: 3000
+      S3_HOST: storage
+      S3_PORT: 9000
+      S3_ACCESS_KEY: ${Storage_AccessKey:-STORAGE_ACCESS_KEY}
+      S3_ACCESS_SECRET: ${Storage_Secret:-STORAGE_SECRET_KEY}
+      S3_BUCKET: ${Storage_Bucket:-images}
+  
+  security:
+    build: ./security
+    expose: 
+      - 3000
+    environment:
+      PORT: 3000
+
+  gateway:
+    image: kong:3.7
+    environment:
+      KONG_DATABASE: "off"
+      KONG_DECLARATIVE_CONFIG: /etc/kong/kong.yml
+      KONG_PROXY_LISTEN: 0.0.0.0:8000
+      KONG_ADMIN_LISTEN: "off"
+      KONG_PLUGINS: bundled,token-validation
+      KONG_LOG_LEVEL: info
+      KONG_PROXY_ACCESS_LOG: /dev/stdout
+      KONG_PROXY_ERROR_LOG: /dev/stderr
+      KONG_STATUS_LISTEN: 0.0.0.0:8100
+      KONG_STATUS_ACCESS_LOG: /dev/stdout
+      KONG_STATUS_ERROR_LOG: /dev/stderr
+    volumes:
+      - ./gateway/kong.yml:/etc/kong/kong.yml:ro
+      - ./gateway/kong/plugins/token-validation:/usr/local/share/lua/5.1/kong/plugins/token-validation:ro
+    ports:
+      - "8080:8000"
+    depends_on:
+      - storage
+      - uploader
+      - security
+    healthcheck:
+      test: ["CMD-SHELL", "curl -fsS http://localhost:8100/status > /dev/null"]
+      interval: 10s
+      timeout: 2s
+      retries: 10

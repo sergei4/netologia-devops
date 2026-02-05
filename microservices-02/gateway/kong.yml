@@ -1,0 +1,60 @@
+_format_version: "3.0"
+
+services:
+  - name: security-user
+    url: http://security:3000/v1/user
+    routes:
+      - name: register
+        paths:
+          - /register
+        methods:
+          - POST
+        strip_path: true
+      - name: user-get
+        paths:
+          - /user
+        methods:
+          - GET
+        strip_path: true
+
+  - name: security-token
+    url: http://security:3000/v1/token
+    routes:
+      - name: token
+        paths:
+          - /token
+        methods:
+          - POST
+        strip_path: true
+
+  - name: uploader-upload
+    url: http://uploader:3000/v1/upload
+    routes:
+      - name: upload
+        paths:
+          - /upload
+        methods:
+          - POST
+        strip_path: true
+
+  - name: storage-images
+    url: http://storage:9000/data
+    routes:
+      - name: images
+        paths:
+          - /images
+        methods:
+          - GET
+        strip_path: true
+
+plugins:
+  - name: token-validation
+    config:
+      validation_url: http://security:3000/v1/token/validation
+      ignore_routes:
+        - register
+        - token
+        - images
+      connect_timeout: 2000
+      read_timeout: 2000
+      write_timeout: 2000
