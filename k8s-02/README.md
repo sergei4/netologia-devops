@@ -59,3 +59,4 @@ kubectl port-forward service/netologi-web 10080:80
 
 ![alt text](image.png)
 
+![alt text](image-2.png)
