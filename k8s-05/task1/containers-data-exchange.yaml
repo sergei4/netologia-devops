@@ -1,0 +1,32 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: data-exchange
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: data-exchange-app
+  template:
+    metadata:
+      labels:
+        app: data-exchange-app
+    spec:
+      containers:
+      - name: data-exchange-writer
+        image: busybox
+        command: ["/bin/sh", "-c"] 
+        args: ["echo $(date) > /data/foo.tmp; sleep 3600"] 
+        volumeMounts:
+        - name: data-exchange-volume
+          mountPath: /data
+      - name: data-exchange-reader
+        image: busybox
+        command: ["/bin/sh", "-c"]
+        args: ["while [ ! -f /data/foo.tmp ]; do sleep 1; done; tail -f /data/foo.tmp"] 
+        volumeMounts:
+        - name: data-exchange-volume
+          mountPath: /data
+      volumes:
+        - name: data-exchange-volume
+          emptyDir: {}
