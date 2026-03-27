@@ -1,0 +1,20 @@
+apiVersion: apps/v1
+kind: DaemonSet
+metadata:
+  name: image-prepull
+spec:
+  selector:
+    matchLabels:
+      app: image-prepull
+  template:
+    metadata:
+      labels:
+        app: image-prepull
+    spec:
+      initContainers:
+      - name: prepull
+        image: nginx:1.20
+        command: ["sh", "-c", "echo Image pulled successfully"]
+      containers:
+      - name: pause
+        image: gcr.io/google-containers/pause:3.1
