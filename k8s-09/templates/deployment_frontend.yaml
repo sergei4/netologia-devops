@@ -1,0 +1,23 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: frontend
+spec:
+  replicas: 5
+  selector:
+    matchLabels:
+      app: frontend
+  template:
+    metadata:
+      labels:
+        app: frontend
+    spec:
+      nodeSelector:
+        workload: stateless
+      containers:
+        - name: frontend
+          image: myrepo/frontend:latest
+          resources:
+            requests:
+              memory: "50Mi"
+              cpu: "200m"

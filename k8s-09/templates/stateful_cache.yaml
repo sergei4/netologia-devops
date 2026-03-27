@@ -1,0 +1,23 @@
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: redis
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: redis
+  template:
+    metadata:
+      labels:
+        app: redis
+    spec:
+      nodeSelector:
+        workload: stateful
+      containers:
+        - name: redis
+          image: redis:7
+          resources:
+            requests:
+              memory: "4Gi"
+              cpu: "1"

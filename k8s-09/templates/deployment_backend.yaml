@@ -1,0 +1,26 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: backend
+spec:
+  replicas: 10
+  selector:
+    matchLabels:
+      app: backend
+  template:
+    metadata:
+      labels:
+        app: backend
+    spec:
+      nodeSelector:
+        workload: stateless
+      containers:
+        - name: backend
+          image: myrepo/backend:latest
+          resources:
+            requests:
+              memory: "600Mi"
+              cpu: "1"
+            limits:
+              memory: "600Mi"
+              cpu: "1"
