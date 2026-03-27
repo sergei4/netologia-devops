@@ -1,0 +1,42 @@
+kind: Deployment
+metadata:
+  name: "fontend-app-{{ .Release.Name }}"
+spec:
+  replicas: {{ .Values.frontend.replicas }}
+  selector:
+    matchLabels:
+      app: frontend-app
+      instance: {{ .Release.Name }}
+  template:
+    metadata:
+      labels:
+        app: frontend-app
+        instance: {{ .Release.Name }}
+    spec:
+      containers:
+        - name: frontend-container
+          image: "{{ .Values.frontend.image.name }}:{{ .Values.frontend.image.tag }}"
+          ports:
+            - containerPort: 80
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: "backend-app-{{ .Release.Name }}"
+spec:
+  replicas: {{ .Values.backend.replicas }}
+  selector:
+    matchLabels:
+      app: backend-app
+      instance: {{ .Release.Name }}
+  template:
+    metadata:
+      labels:
+        app: backend-app
+        instance: {{ .Release.Name }}
+    spec:
+      containers:
+        - name: backend-container
+          image: "{{ .Values.backend.image.name }}:{{ .Values.backend.image.tag }}"
+          ports:
+            - containerPort: 80

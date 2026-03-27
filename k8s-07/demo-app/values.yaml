@@ -1,0 +1,11 @@
+frontend:
+  image:
+    name: nginx
+    tag: 1.25.5
+  replicas: 1  
+
+backend:
+  image:
+    name: wbitt/network-multitool
+    tag: latest
+  replicas: 1  
