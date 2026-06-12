@@ -38,3 +38,25 @@ Terraform-конфигурация находится в каталоге [src](
 
 ![alt text](image-9.png)
 
+## Задание 1.2*. phpMyAdmin
+
+```bash
+kubectl -n phpmyadmin create secret generic phpmyadmin-secret --from-literal=PMA_PASSWORD="..."
+```
+
+Манифест phpMyAdmin находится в [k8s/phpmyadmin.yaml](k8s/phpmyadmin.yaml).
+
+
+```bash
+kubectl apply -f cloud-04/k8s/phpmyadmin.yaml
+```
+
+```bash
+kubectl -n phpmyadmin get all
+kubectl -n phpmyadmin port-forward service/phpmyadmin 18080:80
+```
+
+![alt text](image-10.png)
+
+![alt text](image-11.png)
+

@@ -25,10 +25,13 @@ resource "yandex_vpc_security_group" "mysql" {
   network_id = yandex_vpc_network.network.id
 
   ingress {
-    protocol       = "TCP"
-    description    = "MySQL from private subnets"
-    v4_cidr_blocks = flatten([for subnet in var.private_subnets : subnet.cidr])
-    port           = 3306
+    protocol    = "TCP"
+    description = "MySQL from private and Kubernetes public subnets"
+    v4_cidr_blocks = concat(
+      flatten([for subnet in var.private_subnets : subnet.cidr]),
+      flatten([for subnet in var.public_subnets : subnet.cidr])
+    )
+    port = 3306
   }
 
   egress {
