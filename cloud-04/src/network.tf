@@ -11,6 +11,15 @@ resource "yandex_vpc_subnet" "private" {
   v4_cidr_blocks = each.value.cidr
 }
 
+resource "yandex_vpc_subnet" "public" {
+  for_each = var.public_subnets
+
+  name           = each.key
+  zone           = each.value.zone
+  network_id     = yandex_vpc_network.network.id
+  v4_cidr_blocks = each.value.cidr
+}
+
 resource "yandex_vpc_security_group" "mysql" {
   name       = "${var.env}-mysql-sg"
   network_id = yandex_vpc_network.network.id
