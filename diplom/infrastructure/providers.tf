@@ -1,0 +1,19 @@
+terraform {
+  required_version = ">= 1.6.3, < 2.0.0"
+
+  required_providers {
+    yandex = {
+      source  = "yandex-cloud/yandex"
+      version = ">= 0.130.0, < 1.0.0"
+    }
+  }
+
+  backend "s3" {}
+}
+
+provider "yandex" {
+  cloud_id                 = var.cloud_id
+  folder_id                = var.folder_id
+  zone                     = var.default_zone
+  service_account_key_file = file(pathexpand(var.service_account_key_file))
+}
